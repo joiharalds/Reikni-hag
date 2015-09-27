@@ -1,0 +1,44 @@
+http://px.hagstofa.is/pxis/api/v1/is/Atvinnuvegir/ferdathjonusta/Gisting/GiHotGist/SAM01102.px
+{
+  "query": [
+    {
+      "code": "Þjóðerni",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "0",
+        ]
+      }
+    },
+    {
+      "code": "Ár",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "0",
+        ]
+      }
+    },
+    {
+      "code": "Landsvæði",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "0",
+        ]
+      }
+    },
+    {
+      "code": "Mánuður",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "0",
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json" 
+  }
+}

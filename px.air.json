@@ -1,0 +1,16 @@
+{
+  "query": [
+    {
+      "code": "Uppruni",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "0",
+        ]
+      }
+    },
+  ],
+  "response": {
+    "format": "json" 
+  }
+}

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import shapefile
-from bokeh.plotting import *
+import bokeh.plotting as bpl
 import matplotlib.cm as mpc
 import pdb
 import matplotlib.pyplot as plt
@@ -14,31 +14,32 @@ from pylab import *
 #%    ax[1].imshow(im, cmap=cmap(clr))    
 #
 def readShapefile(filename):
-
+    #pdb.set_trace()
     # Read the shapefile
     dat = shapefile.Reader(filename)
     
     # Create the list of regions
+    # Get list of regions
     regions = set([i[2] for i in dat.iterRecords()])
-    
-    #colors = {'1': '#edded7', '2':'#f4b541', '3':'#0d3653','4':'#133a0f','5': '#8b3a3a', '6': '#fb9058','7': '#4587de'}
-
+    # For some reason I get 9 regions?!
+    colors = ['#edded7','#f4b541','#0d3653','#133a0f','#8b3a3a', '#fb9058','#4587de','black','black']
     #nRegions = len(regions)
     #colormap = mpc.autumn
     #show_colormap(colormap,2)
     #pdb.set_trace()
-    output_file(filename + '.html')
+    bpl.output_file(filename + '.html')
 
+    # some basic tools
     TOOLS = "pan,wheel_zoom, box_zoom, reset, previewsave"
-    map = figure(title='Map of Iceland',tools=TOOLS, plot_width = 900, plot_height = 800)
-    #i = 1 
+    map = bpl.figure(title = 'Map of Iceland',tools=TOOLS, plot_width = 900, plot_height = 800)
+    i = 0 
     for region in regions:
         data = getDict(region,dat)
         #clr = colormap(i/float(nRegions))
-        map.patches(data[region]['lat_list'],data[region]['lng_list'], fill_color='green',line_color='black')
-    #    i += 1
+        map.patches(data[region]['lat_list'],data[region]['lng_list'], fill_color=colors[i],line_color='black')
+        i += 1
 
-    show(map)
+    bpl.show(map)
 
 
 # Given a shapeObject return a list of list for latitude and longitudes values

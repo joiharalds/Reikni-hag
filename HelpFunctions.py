@@ -31,15 +31,15 @@ def readShapefile(filename):
     # some basic tools
     #TOOLS = "pan,wheel_zoom, box_zoom, reset, previewsave"
     TOOLS = "previewsave"
-    map = bpl.figure(title = 'Map of Iceland',tools=TOOLS, plot_width = 800)
+    ice_map = bpl.figure(title = 'Map of Iceland',tools=TOOLS, plot_width = 800)
     i = 0 
     for region in regions:
         data = getDict(region,dat)
         #clr = colormap(i/float(nRegions))
-        map.patches(data[region]['lat_list'],data[region]['lng_list'], fill_color=colors[i],line_color='black')
+        ice_map.patches(data[region]['lat_list'],data[region]['lng_list'], fill_color=colors[i],line_color='black')
         i += 1
 
-    bpl.show(map)
+    bpl.show(ice_map)
 
 
 # Given a shapeObject return a list of list for latitude and longitudes values

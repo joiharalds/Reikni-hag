@@ -30,7 +30,7 @@ def readShapefile(filename):
     output_file(filename + '.html')
 
     TOOLS = "pan,wheel_zoom, box_zoom, reset, previewsave"
-    map = figure(title='Map of Iceland',tools=TOOLS, plot_width = 900, plot_height = 800)
+    map = figure(tools=TOOLS, plot_width = 900, plot_height = 800)
     #i = 1 
     for region in regions:
         data = getDict(region,dat)

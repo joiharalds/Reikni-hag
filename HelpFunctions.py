@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
 import shapefile
@@ -6,45 +7,48 @@ import matplotlib.cm as mpc
 import pdb
 import matplotlib.pyplot as plt
 
-#%def show_colormap(cmap,clr):
-#%    im = np.outer(np.ones(10), np.arange(100))
-#%    fig, ax = plt.subplots(2,figsize=(6,1.5),subplot_kw=dict(xticks=[], yticks=[]))
-#%    ax[0].imshow(im, cmap=cmap)
-#%    ax[1].imshow(im, cmap=cmap(clr))    
-#
-def readShapefile(filename):
-    #pdb.set_trace()
+
+# read the shapefile and initialize the map
+def initialize_map(filename, plot_width):
+
     # Read the shapefile
-    dat = shapefile.Reader(filename)
+    dat = shapefile.Reader(filename, plot_width)
     
     # Create the list of regions
     # Get list of regions
     regions = set([i[2] for i in dat.iterRecords()])
-    # For some reason I get 9 regions?!
-    colors = ['#edded7','#f4b541','#0d3653','#133a0f','#8b3a3a', '#fb9058','#4587de','black','black']
+    region_names = {
+            '1': "Höfuðborgarsvæði",
+            '2': "Vesturland",
+            '3': "Vestfirðir",
+            '4': "Norðurland vestra",
+            '5': "Norðurland eystra",
+            '6': "Austurland",
+            '7': "Suðurland",
+            '8': "Suðurland",
+            '9': "Höfuðborgarsvæði",
+            }
+
     #nRegions = len(regions)
     #colormap = mpc.autumn
     #show_colormap(colormap,2)
     #pdb.set_trace()
-    bpl.output_file(filename + '.html')
+    #bpl.output_file(filename + '.html')
 
     # some basic tools
     #TOOLS = "pan,wheel_zoom, box_zoom, reset, previewsave"
     TOOLS = "previewsave"
-    ice_map = bpl.figure(title = 'Map of Iceland',tools=TOOLS, plot_width = 800)
+    ice_map = bpl.figure(title = 'Map of Iceland',tools=TOOLS, plot_width = plot_width)
     i = 0 
     for region in regions:
         data = getDict(region,dat)
-        #clr = colormap(i/float(nRegions))
-        ice_map.patches(data[region]['lat_list'],data[region]['lng_list'], fill_color=colors[i],line_color='black')
+        ice_map.patches(data[region]['lat_list'],data[region]['lng_list'], line_color='black', name="map_regions")
         i += 1
 
-    bpl.show(ice_map)
-
+    return ice_map, 
 
 # Given a shapeObject return a list of list for latitude and longitudes values
 #       - Handle scenarios where there are multiple parts to a shapeObj
-
 def getParts ( shapeObj ):
 
     points = []

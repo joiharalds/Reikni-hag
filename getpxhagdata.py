@@ -6,8 +6,8 @@ from string import printable
 # ******** Module globals ******** 
 _hagBaseUrl = "http://px.hagstofa.is/pxis/api/v1/is"
 #Note: Structure of query is immutable, following is the correct order of variables
-lson = { "query": [ { "code": "Þjóðerni", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Ár", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Landsvæði", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Mánuður", "selection": { "filter": "item", "values": [ "0", ] } } ], "response": { "format": "json" } } 
-allson = { "query": [ { "code": "Þjóðerni", "selection": { "filter": "all", "values": [ "*", ] } }, { "code": "Ár", "selection": { "filter": "item", "values": [ "0","1" ] } }, { "code": "Landsvæði", "selection": { "filter": "all", "values": [ "*", ] } }, { "code": "Mánuður", "selection": { "filter": "all", "values": [ "*", ] } } ], "response": { "format": "json" } } 
+_lson = { "query": [ { "code": "Þjóðerni", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Ár", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Landsvæði", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Mánuður", "selection": { "filter": "item", "values": [ "0", ] } } ], "response": { "format": "json" } } 
+_allson = { "query": [ { "code": "Þjóðerni", "selection": { "filter": "all", "values": [ "*", ] } }, { "code": "Ár", "selection": { "filter": "item", "values": [ "0","1" ] } }, { "code": "Landsvæði", "selection": { "filter": "all", "values": [ "*", ] } }, { "code": "Mánuður", "selection": { "filter": "all", "values": [ "*", ] } } ], "response": { "format": "json" } } 
 
 def main():
   data,metadata = getpxjson_hotelnights()
@@ -42,17 +42,9 @@ def getpxjson_hotelnights():
   hotelNightsUrl = "/Atvinnuvegir/ferdathjonusta/Gisting/GiHotGist/SAM01102.px"
   url = _hagBaseUrl+hotelNightsUrl
   jsonfile = 'px.hotelnights.json'
-  #***********
-  #404 error caused by the payload being read from file, hardcoding works
-  #payload = readjsonfromfile(jsonfile).strip()
-  #print(repr(payload))
-  #payload = payload.replace('\n','').replace(' ','').replace('\r','')
-  #print(repr(payload))
-  #***********
-  r = requests.post(url,json=allson)
+  r = requests.post(url,json=_allson)
   g = requests.get(url)
   metadata = json.loads(g.text)
-  #out = re.sub("[^{}]+".format(printable), "", r.text)
   #Remove '\ufeff' char at front of returned data string
   out = r.text[1:]
   query = json.loads(out)

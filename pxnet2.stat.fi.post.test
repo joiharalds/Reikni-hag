@@ -1,0 +1,48 @@
+http://pxnet2.stat.fi/PXWeb/api/v1/en/StatFin/vrm/kuol/010_kuol_tau_101.px
+{
+  "query": [
+    {
+      "code": "Alue",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "SSS",
+          "020",
+          "005"
+        ]
+      }
+    },
+    {
+      "code": "Ikä",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "SSS",
+          "0 - 4",
+          "5 - 9"
+        ]
+      }
+    },
+    {
+      "code": "Vuosi",
+      "selection": {
+      "filter":"top",
+      "values":["2"] 
+      }
+    },
+    {
+      "code": "Sukupuoli",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "S",
+          "1",
+          "2"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json" 
+  }
+}

@@ -1,20 +1,41 @@
+#-*- coding: utf-8 -*-
 import requests, json
 import re
 from string import printable
 
 # ******** Module globals ******** 
-_finBaseUrl = "http://pxnet2.stat.fi/PXWeb/api/v1/en"
 _hagBaseUrl = "http://px.hagstofa.is/pxis/api/v1/is"
-_headerjson = {'Content-Type':'application/json; charset=utf-8'}
-_headers = { 'Content-Type': 'application/json',
-    'Accept': '*/*',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'en-US,en;q=0.8,is;q=0.6'
-    }
+#Note: Structure of query is immutable, following is the correct order of variables
 lson = { "query": [ { "code": "Þjóðerni", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Ár", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Landsvæði", "selection": { "filter": "item", "values": [ "0", ] } }, { "code": "Mánuður", "selection": { "filter": "item", "values": [ "0", ] } } ], "response": { "format": "json" } } 
+allson = { "query": [ { "code": "Þjóðerni", "selection": { "filter": "all", "values": [ "*", ] } }, { "code": "Ár", "selection": { "filter": "item", "values": [ "0","1" ] } }, { "code": "Landsvæði", "selection": { "filter": "all", "values": [ "*", ] } }, { "code": "Mánuður", "selection": { "filter": "all", "values": [ "*", ] } } ], "response": { "format": "json" } } 
 
 def main():
-  getpxjson_hotelnights()
+  data,metadata = getpxjson_hotelnights()
+  datatuples = parsepxjson_hotelnights(metadata,data)
+
+def parsepxjson_hotelnights(metadata,data):
+  """
+    Desc: Create data n-tuples from pxdata. Returns list of n-tuples.
+  """
+  metavars = metadata['variables']
+  headers = list()
+  datatuples = list()
+  #Get data headers
+  for var in metavars:
+    headers.append(var['text'])
+  headers.append('Gildi')
+  datatuples.append(tuple(headers))
+  #Get data values
+  for keyval in data:
+    t = list()
+    for i,key in enumerate(keyval['key']):
+      t.append(metavars[i]['valueTexts'][int(key)])
+    #Does any pxdata contain multiple values for a single key?
+    t.append(keyval['values'][0])
+    datatuples.append(tuple(t))
+  return datatuples
+
+#def makerequest_hotelnights():
 
 def getpxjson_hotelnights():
   #Specific url for data on hotel nights 1997-2015
@@ -23,25 +44,20 @@ def getpxjson_hotelnights():
   jsonfile = 'px.hotelnights.json'
   #***********
   #404 error caused by the payload being read from file, hardcoding works
-  #payload = readjsonfromfile(jsonfile).rstrip()
+  #payload = readjsonfromfile(jsonfile).strip()
   #print(repr(payload))
   #payload = payload.replace('\n','').replace(' ','').replace('\r','')
   #print(repr(payload))
   #***********
-  r = requests.post(url,json=lson)
+  r = requests.post(url,json=allson)
+  g = requests.get(url)
+  metadata = json.loads(g.text)
   #out = re.sub("[^{}]+".format(printable), "", r.text)
   #Remove '\ufeff' char at front of returned data string
   out = r.text[1:]
   query = json.loads(out)
   data = query['data']
-  print(data[0]['values'])
-
-  #finnish test code
-  """kuolUrl = "/StatFin/vrm/kuol/010_kuol_tau_101.px"
-  turl = _finBaseUrl+kuolUrl
-  jf = 'pxfin.kuol.json'
-  dj = readjsonfromfile(jf)
-  tr = requests.post(turl,json=dj,headers=_headerjson)"""
+  return data,metadata
 
 # ******** HELPER FUNCTIONS *********
 def readjsonfromfile(fname):

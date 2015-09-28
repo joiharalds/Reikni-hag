@@ -27,7 +27,7 @@ def writepxjson_to_csv(data,fname,noIceChars=False):
   """
     Desc: Write pxjsondata to csv with header row.
 
-    Use: writepxjson_to_csv(data,fname,noIceChars=0)
+    Use: writepxjson_to_csv(data,fname)
     Before: data is list of tuples, fname is name of csv file to write.
             if noIceChars is True then all icelandic characters and ' ' are
               translated according to module transtable.

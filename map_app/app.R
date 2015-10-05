@@ -3,7 +3,6 @@ library(jsonlite)
 library(leaflet)
 library(shiny)
 setwd(dir = '~/Programming/python/hagverkefni/hagtest/')
-options(width=120) # longer output lines
 
 # --- Read in the data and prepare the dataframe ---
 
@@ -72,11 +71,9 @@ get_palette <- function(data) {
 
 get_color <- function(data, time, region_name, pal) {
 	data_name = region_name # name of the region in the data
-	if (region_name == "Reykjanes") {
-		return("#000000") # no data
-	} else if (region_name == "Vesturland" | region_name == "Vestfirðir") {
+	if (region_name == "Vesturland" | region_name == "Vestfirðir") {
 		data_name = "Vesturland, Vestfirðir"
-	} else if (region_name == "Höfuðborgarsvæðið") {
+	} else if (region_name == "Höfuðborgarsvæðið" | region_name == "Reykjanes") {
 		data_name = "Höfuðborgarsvæði"
 	}
 	pal = get_palette(data)
@@ -86,13 +83,6 @@ get_color <- function(data, time, region_name, pal) {
 
 
 # --- Preparing for shiny --- 
-
-# Selected nationality
-selected_nationality = tourist_data$Nationality[[1]]
-# Selected time value
-selected_time <- time_range[[1]]
-# Filter by selected nationality
-#data_to_plot <- tourist_data[(tourist_data$Nationality == selected_nationality),]
 
 # read in the geoJSON file
 geojson <- readLines("iceland-geodata/regions/1000/iceland_regions.geojson", warn = FALSE) %>%
@@ -124,7 +114,7 @@ server <- function(input, output) {
 
 
 	# Add a properties$style list to each feature (each region)
-	observe({
+	observe(priority=1, {
 		reacVals$geo$features <- lapply(reacVals$geo$features, function(region) {
 					   region_name = region$properties$Name
 					   region$properties$style <- list(

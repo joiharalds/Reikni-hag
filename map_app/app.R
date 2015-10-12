@@ -126,7 +126,7 @@ get_color <- function(data, time, region_name, pal) {
 	}
 	PalValues = tourist_data[(tourist_data$Nationality == input$nat),]
 	 region$properties$style <- list(
-									   fillColor = get_color(PalValues, time_range[[input$time]], region_name)
+					 fillColor = get_color(PalValues, time_range[[input$time]], region_name)
 					   )
 				  return(region)
 				  })

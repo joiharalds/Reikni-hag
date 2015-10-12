@@ -2,6 +2,7 @@ library(zoo)
 library(jsonlite)
 library(leaflet)
 library(shiny)
+library(RColorBrewer)
 
 # --- Read in the data and prepare the dataframe ---
 
@@ -49,6 +50,9 @@ names(tourist_data)[names(tourist_data) == 'Value0'] <- 'Number'
 tourist_data <- tourist_data[order(tourist_data$Date),]
 
 
+#get_palette <- function(data){
+#		colorNumeric("Greens",domain=data$Log)  
+#}
 # --- Processing ---
 
 # add logarithm of number of tourists
@@ -62,18 +66,15 @@ time_range <- unique(tourist_data$Date)
 time_min <- tourist_data$Date[[1]]
 time_max <- tail(tourist_data$Date, 1)
 
-
-
-
 # --- Preparing for shiny --- 
 
 # read in the geoJSON file
-geojson <- readLines("iceland-geodata/regions/1000/iceland_regions.geojson", warn = FALSE) %>%
+geoData <- readLines("iceland-geodata/regions/1000/iceland_regions.geojson", warn = FALSE) %>%
 paste(collapse = "\n") %>%
 fromJSON(simplifyVector = FALSE)
 
 # Default styles for all features
-geojson$style = list(
+geoData$style = list(
 		     weight = 1,
 		     color = "#555555",
 		     opacity = 1,
@@ -84,58 +85,81 @@ geojson$style = list(
 ui <- bootstrapPage(
 		    tags$style(type = "text/css", "html, body {width:90%;height:90%}"),
 		    leafletOutput("my_map", width = "90%", height = "90%"),
+		    
+		    
 		    absolutePanel(top = 10, right = 10,
-				  sliderInput(inputId="time", label="Time", min = 1, max = length(time_range), value=1, step=1),
-				  selectInput(inputId="nat", label="Nationality",
-					      choices= as.character(nationalities))
-				  )
+				            sliderInput(inputId="time", label="Time", min = 1, max = length(time_range), value=1, step=1),
+				            selectInput(inputId="nat", label="Nationality",choices= as.character(nationalities)),
+				            selectInput("colors", "Color Scheme",rownames(subset(brewer.pal.info, category %in% c("seq", "div")))),
+				            checkboxInput("legend", "Show legend", TRUE)
+				            )
 		    )
 
 server <- function(input, output) {
+# Reactive values let us control which parts of the app should update
+# This is done to prevent any unnecessary work
 
-	reacVals <- reactiveValues()
-	reacVals$geo <- geojson
-	colorPal <- reactiveValues()
-	PalValues <- reactiveValues()
-	observe(priority=1, {
-# Create the colour palette
-get_palette <- function(data) {
-	colorNumeric(palette="Greens", domain=data$Log)
-}
 
-get_color <- function(data, time, region_name, pal) {
-	colorPal = get_palette(data)
+#	reacVals <- reactiveValues()
+#	reacVals$geo <- geoData
+	# Get the tourist data that adheres to the user input
+	
+	
+		inputData <-reactive({
+			lapply(tourist_data, function(Density){
+			       # Filter for values based on user input
+			       		Density <- tourist_data[(tourist_data$Nationality == input$nat) & (tourist_data$Date == time_range[[input$time]]),]
+						    })})
+	
+	colorPal <- reactive({
+		colorNumeric(input$colors,inputData$Region$Log)
+})
 
-	return(colorPal(data[(data$Region == region_name) & (data$Date == time),]$Log))
-}
-PalValues <- function(){	
-# Add a properties$style list to each feature (each region)
+	observe(priority=2, {
+	#observe(priority=1,{
+	# Add a properties$style list to each feature (each region)
+		# Each feature of the data is manipulated 
 		reacVals$geo$features <- lapply(reacVals$geo$features, function(region) {
-					   region_name = region$properties$Name
-	if (region_name == "Vesturland" | region_name == "Vestfirðir") {
-		region_name = "Vesturland, Vestfirðir"
-	} else if (region_name == "Höfuðborgarsvæðið" | region_name == "Reykjanes") {
-		region_name = "Höfuðborgarsvæði"
-	}
-	PalValues = tourist_data[(tourist_data$Nationality == input$nat),]
-					   region$properties$style <- list(
-									   fillColor = get_color(PalValues, time_range[[input$time]], region_name)
-					   )
-				  })
-}
+						region_name = region$properties$Name	
+						# We must change the labels to fit the data
+						if (region_name == "Vesturland" | region_name == "Vestfirðir") {
+							region_name = "Vesturland, Vestfirðir"
+						} else if (region_name == "Höfuðborgarsvæðið" | region_name == "Reykjanes") {
+							region_name = "Höfuðborgarsvæði"
+						}
+						#browser()
+						XData = inputData()
+						densityValue = XData$Region[(XData$Region$Region == region_name),]
+						region$properties$style <- list(
+						  
+						#browser(),
+							fillColor =~colorNumeric(input$colors,densityValue$Log)
+						)
+		})
+	})
 
-
+	#Use a separate observer to recreate the legend as needed.
+	#  	observe({
+	#    		proxy <- leafletProxy("map", data = quakes)   
+	# Remove any existing legend, and only if the legend is
+	# enabled, create a new one.
+	#    		proxy %>% clearControls()
+	#    		if (input$legend) {
+	#   			pal <- colorpal()
+	#      			proxy %>% addLegend(position = "bottomright",pal = pal, values = ~mag)
+	#    		}
+	# 	 })
 	output$my_map <- renderLeaflet({
 		leaflet() %>% setView(lng = -19.000, lat = 65.000, zoom = 6.20) %>% # zoom = 6.20
-		addTiles() %>% addLegend(pal =colorPal, values = ~PalValues$Log)
+		addTiles()# %>% addLegend("bottomright", pal = get_palette(tourist_data[(tourist_data$Nationality == input$nat),]), values = tourist_data[(tourist_data$Nationality == input$nat),])
 	})
-})
+
 	observeEvent(input$time, {
-		leafletProxy("my_map") %>% clearGeoJSON() %>% addGeoJSON(reacVals$geo)
+		     leafletProxy("my_map") %>% clearGeoJSON() %>% addGeoJSON(reacVals$geo)
 	})
 
 	observeEvent(input$nat, {
-		leafletProxy("my_map") %>% clearGeoJSON() %>% addGeoJSON(reacVals$geo)
+		     leafletProxy("my_map") %>% clearGeoJSON() %>% addGeoJSON(reacVals$geo)
 	})
 
 }

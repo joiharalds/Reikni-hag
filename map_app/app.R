@@ -69,7 +69,7 @@ time_max <- tail(tourist_data$Date, 1)
 # --- Preparing for shiny --- 
 
 # read in the geoJSON file
-geojson <- readLines("iceland-geodata/regions/1000/iceland_regions.geojson", warn = FALSE) %>%
+geojson <- readLines("../iceland-geodata/regions/1000/iceland_regions.geojson", warn = FALSE) %>%
 paste(collapse = "\n") %>%
 fromJSON(simplifyVector = FALSE)
 

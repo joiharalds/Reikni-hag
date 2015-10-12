@@ -2,6 +2,7 @@ library(zoo)
 library(jsonlite)
 library(leaflet)
 library(shiny)
+library(RColorBrewer)
 
 # --- Read in the data and prepare the dataframe ---
 
@@ -84,10 +85,11 @@ geojson$style = list(
 ui <- bootstrapPage(
 		    tags$style(type = "text/css", "html, body {width:90%;height:90%}"),
 		    leafletOutput("my_map", width = "90%", height = "90%"),
-		    absolutePanel(top = 10, right = 10,
+		    absolutePanel(top = 10, right = 13,
 				  sliderInput(inputId="time", label="Time", min = 1, max = length(time_range), value=1, step=1),
-				  selectInput(inputId="nat", label="Nationality",
-					      choices= as.character(nationalities))
+				  selectInput(inputId="nat", label="Nationality",choices= as.character(nationalities)),
+				  selectInput("colors", "Color Scheme",rownames(subset(brewer.pal.info, category %in% c("seq", "div")))),
+				            checkboxInput("legend", "Show legend", TRUE)
 				  )
 		    )
 
@@ -97,19 +99,24 @@ server <- function(input, output) {
 	reacVals$geo <- geojson
 	colorPal <- reactiveValues()
 	PalValues <- reactiveValues()
-	observe(priority=1, {
 # Create the colour palette
 get_palette <- function(data) {
-	colorNumeric(palette="Greens", domain=data$Log)
+	colorNumeric(palette=input$colors, domain=data$Log)
 }
+PalVal <- reactive({
+	tourist_data[(tourist_data$Nationality == input$nat)]$Log
+})
+Pal <- reactive({
+	get_palette(tourist_data[(tourist_data$Nationality == input$nat),])
+})
 
 get_color <- function(data, time, region_name, pal) {
 	colorPal = get_palette(data)
 
 	return(colorPal(data[(data$Region == region_name) & (data$Date == time),]$Log))
 }
-PalValues <- function(){	
 # Add a properties$style list to each feature (each region)
+	observe(priority=1, {
 		reacVals$geo$features <- lapply(reacVals$geo$features, function(region) {
 					   region_name = region$properties$Name
 	if (region_name == "Vesturland" | region_name == "Vestfirðir") {
@@ -118,16 +125,14 @@ PalValues <- function(){
 		region_name = "Höfuðborgarsvæði"
 	}
 	PalValues = tourist_data[(tourist_data$Nationality == input$nat),]
-					   region$properties$style <- list(
+	 region$properties$style <- list(
 									   fillColor = get_color(PalValues, time_range[[input$time]], region_name)
 					   )
+				  return(region)
 				  })
-}
-
-
 	output$my_map <- renderLeaflet({
 		leaflet() %>% setView(lng = -19.000, lat = 65.000, zoom = 6.20) %>% # zoom = 6.20
-		addTiles() %>% addLegend(pal =colorPal, values = ~PalValues$Log)
+		addTiles() %>% addLegend(pal =Pal(), values = tourist_data[(tourist_data$Nationality == input$nat),]$Log)
 	})
 })
 	observeEvent(input$time, {

@@ -84,14 +84,6 @@ geojson$style = list(
 # Shiny processing, we specify the UI and the server.
 ui <- bootstrapPage(#navbarPage("Superzip", id="nav",
 
-#		 tabPanel("Interactive map",
-#			  div(class="outer",
-
-#			      tags$head(
-					# Include our custom CSS
-#					includeCSS("styles.css"),
-#					includeScript("gomap.js")
-#					),
             tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
 			      leafletOutput("my_map", width="100%", height="100%"),
 
@@ -106,58 +98,19 @@ ui <- bootstrapPage(#navbarPage("Superzip", id="nav",
 					   textOutput("timeValue"),
 					   selectInput(inputId="nat", label="Nationality",choices= as.character(nationalities)),
 					   selectInput("colors", "Color Scheme",rownames(subset(brewer.pal.info, category %in% c("seq", "div")))),
-	#				    selectInput("color", "Color", vars),
-	#				    selectInput("size", "Size", vars, selected = "adultpop"),
-	#				    conditionalPanel("input.color == 'superzip' || input.size == 'superzip'",
-							     # Only prompt for threshold when coloring or sizing by superzip
-	#						     numericInput("threshold", "SuperZIP threshold (top n percentile)", 5)
-	#						     ),
               				   plotOutput("natPlot", height = 400, width = 400)))
-		#			    plotOutput("histCentile", height = 200),
-		#			    plotOutput("scatterCollegeIncome", height = 250)
-					    #),
-
-#			      tags$div(id="cite",
-#				       'Data compiled for ', tags$em('Coming Apart: The State of White America, 1960–2010'), ' by Charles Murray (Crown Forum, 2012).'
-#				       )
-#			      )
-#			  ),
-
-#		 tabPanel("Data explorer"),
-#
-#		 conditionalPanel("false", icon("crosshair"))
-#		 )
-	#	titlePanel("Data on Tourism"),
-
-	#	sidebarLayout(
-
-	#		      sidebarPanel(
-	#				   sliderInput(inputId="time", label="Time", min = 1, max = length(time_range), value=1, step=1),
-	#				   selectInput(inputId="nat", label="Nationality",choices= as.character(nationalities)),
-	#				   selectInput("colors", "Color Scheme",rownames(subset(brewer.pal.info, category %in% c("seq", "div")))),
-	#				   checkboxInput("legend", "Show legend", TRUE)
-	#				   ),
-	#		      
-	#		      )
-		#)
-
 server <- function(input, output) {
 	# First we define the geojson data as reactive values
 	# Reactive values are values that will change depending on the user input
 	reacVals <- reactiveValues()
 	reacVals$geo <- geojson
 
-	#colorPal <- reactiveValues()
-	#PalValues <- reactiveValues()
 	# Create the colour palette
 	get_palette <- function(data) {
 		colorNumeric(palette=input$colors, domain=data$Log)
 		}
 	
 	
-#	PalVal <- reactive({
-#		tourist_data[(tourist_data$Nationality == input$nat)]$Log
-	#})
 	Pal <- reactive({
 		get_palette(tourist_data[(tourist_data$Nationality == input$nat) & (tourist_data$date == time_range[[input$time]]),])
 	})
